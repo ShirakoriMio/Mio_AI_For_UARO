@@ -1,0 +1,11 @@
+MagTimeout=708500
+SOffensiveTimeout=0
+SDefensiveTimeout=0
+SOwnerBuffTimeout=0
+GuardTimeout=655983800
+QuickenTimeout=661293753
+OffensiveOwnerTimeout=0
+DefensiveOwnerTimeout=27500
+OtherOwnerTimeout=0
+ShouldStandby=0
+RegenTick[1]=19

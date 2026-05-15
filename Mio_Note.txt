@@ -1,0 +1,3 @@
+This repository is a simple drag and drop to replace your AI folder in the Ragnarok Directory.
+As with any implementation of hoai and mirai (UaRO's approved mod for AzzyAI in this case),
+copy the default existing AI folder and rename it AI_Backup. That's it.
