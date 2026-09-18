@@ -1932,15 +1932,13 @@ function	GetQuickenSkill(myid)
 			homuntype=modulo(OldHomunType,4)
 		end
 		if (homuntype==1) then -- It's a lif!
-			skill=HLIF_CHANGE
-			level=3
+			-- Disable Lif auto-buffing Mental Charge. It should not cast on its own.
+			skill=0
+			level=0
 		elseif	(homuntype==3) then -- It's a filer!
-			skill=HFLI_FLEET
-			if (FilirFlitLevel==nil) then
-				level=5
-			else
-				level=FilirFlitLevel
-			end
+			-- Disable Filir auto-casting Fleet Avoid. It should not cast on its own.
+			skill=0
+			level=0
 		elseif  (homuntype==2) then --it's an amistr
 			skill=HAMI_BLOODLUST
 			level=3
@@ -2048,19 +2046,13 @@ function	GetGuardSkill(myid)
 			homuntype=modulo(OldHomunType,4)
 		end
 		if (homuntype==1) then -- It's a lif!
-			skill=HLIF_AVOID
-			if (LifEscapeLevel==nil) then
-				level=5
-			else
-				level=LifEscapeLevel
-			end
+			-- Disable Lif auto-casting Urgent Escape. It should not cast on its own.
+			skill=0
+			level=0
 		elseif (homuntype==2) then -- It's an amistr!
-			skill=HAMI_DEFENCE
-			if (AmiBulwarkLevel==nil) then
-				level=5
-			else
-				level=AmiBulwarkLevel
-			end
+			-- Disable Amistr auto-casting Defense Skill. It should not cast on its own.
+			skill=0
+			level=0
 		elseif (homuntype==3) then -- It's an filir!
 			skill=HFLI_SPEED
 			if (FilirAccelLevel==nil) then
@@ -2268,7 +2260,10 @@ function KiteOK(myid)
 	mertype=GetV(V_MERTYPE,myid)
 	if (mertype==nil) then
 		homuntype=modulo(GetV(V_HOMUNTYPE,myid),4)
-		if ((homuntype==0 or homuntype==3 )and DoNotChase==1) then
+		if (homuntype==1 or homuntype==2) then
+			-- Lif and Amistr always kite by default instead of attacking
+			return 1
+		elseif ((homuntype==0 or homuntype==3 )and DoNotChase==1) then
 			return 1
 		else
 			return 0

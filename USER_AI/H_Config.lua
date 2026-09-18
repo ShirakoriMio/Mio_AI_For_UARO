@@ -86,8 +86,8 @@ MoveSticky               = 1
 MoveStickyFight          = 1
 
 --Kiting options:
-KiteMonsters             = 0
-KiteBounds               = 18 
+KiteMonsters             = 1
+KiteBounds               = 15 
 KiteStep                 = 5
 KiteParanoidStep         = 2
 KiteThreshold            = 3

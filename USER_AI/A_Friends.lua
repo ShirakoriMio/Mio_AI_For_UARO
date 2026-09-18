@@ -7,3 +7,8 @@
 --MyFriends{2322797}=KOS
 --Possible values are NEUTRAL, KOS (kill on sight), ENEMY (assume hostile, but don't attack), and ALLY (assume friendly).
 MyFriends={}
+MyFriends[2115943]=1 -- 
+MyFriends[110302229]=1 -- 
+MyFriends[124914208]=1 -- 
+MyFriends[2056056]=1 -- 
+MyFriends[110201389]=1 -- 

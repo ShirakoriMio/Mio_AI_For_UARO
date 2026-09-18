@@ -10,12 +10,12 @@ AggroHP                  = 0
 AggroSP                  = 0
 OldHomunType             = 4
 UseSkillOnly             = -1 
-UseAttackSkill           = 1
-UseSkillOnFollow         = 1 -- 1 = use skill when Hom/Merc following player, 0 = disable
+UseAttackSkill           = 0
+UseSkillOnFollow         = 0 -- 1 = use skill when Hom/Merc following player, 0 = disable
 OpportunisticTargeting   = 0
 DoNotChase               = 0
 UseDanceAttack           = 0
-SuperPassive             = 0
+SuperPassive             = 1
 PVPmode                  = 0
 AttackLastHPSP           = 80
 UseIdleWalk              = 0
@@ -75,8 +75,8 @@ MoveSticky               = 0
 MoveStickyFight          = 0
 
 --Kiting options:
-KiteMonsters             = 0
-KiteBounds               = 18 
+KiteMonsters             = 1
+KiteBounds               = 15 
 KiteStep                 = 5
 KiteParanoidStep         = 2
 KiteThreshold            = 3

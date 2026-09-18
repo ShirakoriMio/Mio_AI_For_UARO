@@ -21,6 +21,7 @@ AutoSkillCooldown[HLIF_HEAL]=0
 
 -- Idle walk suppression flag (suppresses idle walk when manually moving homunculus)
 IdleWalkSuppressed      = false
+KiteOverrideUntil = KiteOverrideUntil or {}
 
 -----------Config checking----------------
 
@@ -827,17 +828,21 @@ function	OnCHASE_ST ()
 		end
 	end
 	if (true == IsInAttackSight(MyID,MyEnemy,skill,level)) then  -- ENEMY_INATTACKSIGHT_IN
-		MyState = ATTACK_ST
-		AttackTimeout=GetTick()+AttackTimeLimit
-		ExChaseGiveUpCount=ChaseGiveUpCount
-		ChaseGiveUpCount=0
-		MySkillUsedCount=0
-		TraceAI ("CHASE_ST -> ATTACK_ST : ENEMY_INATTACKSIGHT_IN")
-		if (FastChangeCount < FastChangeLimit and FastChange_C2A == 1) then
-			FastChangeCount = FastChangeCount+1
-			return OnATTACK_ST()
+		if (KiteOK(MyID)==1) then
+			-- Lif and Amistr kite instead of attacking, so skip ATTACK_ST transition
 		else
-			return
+			MyState = ATTACK_ST
+			AttackTimeout=GetTick()+AttackTimeLimit
+			ExChaseGiveUpCount=ChaseGiveUpCount
+			ChaseGiveUpCount=0
+			MySkillUsedCount=0
+			TraceAI ("CHASE_ST -> ATTACK_ST : ENEMY_INATTACKSIGHT_IN")
+			if (FastChangeCount < FastChangeLimit and FastChange_C2A == 1) then
+				FastChangeCount = FastChangeCount+1
+				return OnATTACK_ST()
+			else
+				return
+			end
 		end
 	elseif UseSkillOnly == -1 and (GetTick() >= AutoSkillTimeout) then
 		dist=GetDistanceA(MyID,MyEnemy)
@@ -2940,9 +2945,46 @@ function DoKiteAdjust(myid,enemy)
 	else
 		step=KiteParanoidStep
 	end
+	-- If Lif or Amistr, increase step so they kite farther per move
+	if (KiteOK(myid)==1) then
+		step = step + 6
+	end
 	local x,y=GetV(V_POSITION,myid)
 	local ox,oy=GetV(V_POSITION,GetV(V_OWNER,myid))
 	local ex,ey=GetV(V_POSITION,enemy)
+
+	-- For Lif/Amistr, choose a destination on a circle around the enemy at ~7 cells
+	if (KiteOK(myid)==1) then
+		local desired = 15
+		local mb = GetMoveBounds()
+		local ownerid = GetV(V_OWNER,myid)
+		local found = false
+		local bestx,besty
+		-- try decreasing radii if needed
+		while desired > 1 and not found do
+			for k=0,7 do
+				local theta = k * (2*3.14159265 / 8)
+				local dx = math.floor(0.5 + desired * math.cos(theta))
+				local dy = math.floor(0.5 + desired * math.sin(theta))
+				local destx = ex + dx
+				local desty = ey + dy
+				if (GetDistanceAPR(ownerid,destx,desty) <= mb) then
+					bestx,besty = destx,desty
+					found = true
+					break
+				end
+			end
+			if not found then desired = desired - 1 end
+		end
+		if found then
+			MyDestX = bestx
+			MyDestY = besty
+			-- prevent being forced to follow for a short time while kiting
+			KiteOverrideUntil[myid] = GetTick() + 5000
+			Move(myid,MyDestX,MyDestY)
+			return
+		end
+	end
 	local xoptions ={[2]=1,[0]=1,[1]=1}
 	local yoptions ={[2]=1,[0]=1,[1]=1}
 	local xdirection,ydirection=0,0
@@ -3013,6 +3055,8 @@ function DoKiteAdjust(myid,enemy)
 	TraceAI("Kiteing in "..xdirection..","..ydirection.." direction")
 	MyDestX=x+step*xdirection
 	MyDestY=y+step*ydirection
+	-- prevent being forced to follow for a short time while kiting
+	KiteOverrideUntil[myid] = GetTick() + 3000
 	Move(myid,MyDestX,MyDestY)
 end
 
@@ -3576,8 +3620,11 @@ function AI(myid)
 	-- Otherwise, IDLE_ST handles it
 	
 	local dist2owner=GetDistanceRect(MyID,GetV(V_OWNER,MyID))
+	-- Do not force follow while homun is actively kiting (temporary override)
 	if (MyState ~=FOLLOW_ST and dist2owner > GetMoveBounds()) then
-		MyState=FOLLOW_ST
+		if not (KiteOverrideUntil[MyID]~=nil and KiteOverrideUntil[MyID] > GetTick()) then
+			MyState=FOLLOW_ST
+		end
 	end
 	--Cancel all action during the spawn invulnerability
 	if (GetTick() < (MyStart + SpawnDelay)) then
@@ -3674,12 +3721,16 @@ function AI(myid)
 				if (IsMonster(v)==1 and GetV(V_MOTION,v) ~= MOTION_DEAD) then
 					local target=GetV(V_TARGET,v)
 					local tact = GetTact(TACT_KITE,v)
-					if ((IsFriendOrSelf(target)==1 and tact==1) or tact==2) then
+					if ((IsFriendOrSelf(target)==1 and tact==1) or tact==2 or KiteOK(MyID)==1) then
 						local threshold
 						if (IsFriend(target)==1 or target==MyID) then
 							threshold=KiteThreshold
 						else
 							threshold=KiteParanoidThreshold
+						end
+						-- Lif and Amistr kite at greater distance
+						if (KiteOK(MyID)==1) then
+							threshold = threshold + 7
 						end
 						if (GetDistanceA(MyID,v) <= threshold) then
 							TraceAI("Enemies close to me, start kite routine. ")
